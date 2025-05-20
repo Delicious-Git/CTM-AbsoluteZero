@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  ctm-az:
+    build: .
+    container_name: ctm-absolutezero
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./state:/app/state
+      - ./configs:/app/configs
+    ports:
+      - "8000:8000"
+    command: python -m src.cli --config /app/configs/production.yaml dfz
+    environment:
+      - CTM_AZ_LOGGING_LEVEL=info
+      - CTM_AZ_PERFORMANCE_CUDA_ENABLED=true
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+
+  # Optional DFZ integration service (uncomment if needed)
+  # dfz:
+  #   image: dfz-evolution:latest
+  #   container_name: dfz-evolution
+  #   volumes:
+  #     - ./dfz-data:/app/data
+  #     - ./dfz-configs:/app/configs
+  #   ports:
+  #     - "8001:8001"
+  #   environment:
+  #     - DFZ_PLUGINS_ENABLED=true
+  #     - DFZ_PLUGINS_PATH=/app/plugins
+  #   depends_on:
+  #     - ctm-az
+  #   restart: unless-stopped

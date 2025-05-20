@@ -1,7 +1,56 @@
-torch>=2.0.0
-transformers>=4.35.0
-trl>=0.7.1
+# Core dependencies
 numpy>=1.22.0
 scipy>=1.10.0
 pyyaml>=6.0
+torch>=2.0.0
+
+# LLM and Transformers
+transformers>=4.35.0
+trl>=0.7.1
+accelerate>=0.20.3
+bitsandbytes>=0.39.0
+sentencepiece>=0.1.99
+
+# Quantum simulation
+qiskit>=0.42.0
+pennylane>=0.29.0
+
+# Data handling
+pandas>=1.5.3
+h5py>=3.8.0
+scikit-learn>=1.2.2
+
+# Visualization
 matplotlib>=3.5.0
+seaborn>=0.12.2
+
+# Utilities
+tqdm>=4.65.0
+joblib>=1.2.0
+psutil>=5.9.5
+requests>=2.31.0
+
+# Logging and monitoring
+tensorboard>=2.12.3
+wandb>=0.15.4
+python-dotenv>=1.0.0
+
+# Web and API
+fastapi>=0.95.2
+uvicorn>=0.22.0
+websockets>=11.0.3
+httpx>=0.24.1
+
+# Testing
+pytest>=7.3.1
+pytest-asyncio>=0.21.0
+
+# Documentation
+sphinx>=6.2.1
+sphinx-rtd-theme>=1.2.2
+
+# DFZ integration (optional)
+# These dependencies are only required when using DFZ integration
+# Comment them out if you don't need DFZ integration
+# aiohttp>=3.8.4
+# redis>=4.5.5

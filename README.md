@@ -1,48 +1,69 @@
 # CTM-AbsoluteZero
 
-Un framework auto-didactique combinant Continuous Thought Machine (CTM) et le paradigme Absolute Zero Reasoner avec simulation quantique légère.
+A self-learning framework combining Continuous Thought Machine (CTM) and the Absolute Zero Reasoner paradigm with lightweight quantum simulation.
 
-## 🌟 Caractéristiques
+## 🌟 Features
 
-- **Architecture Proposer/Solver**: Un LLM génère des tâches adaptatives, le CTM les résout
-- **Système de récompense multi-composantes**: Performance, faisabilité, nouveauté et progression
-- **Transfert inter-domaines**: Partage des connaissances entre différents types de tâches
-- **Simulation quantique légère**: Algorithmes VQE, Grover, QFT optimisés pour GPU standard
-- **Évolution par phases**: Exploration → Spécialisation → Transfert → Raffinement
+- **Proposer/Solver Architecture**: A LLM generates adaptive tasks, the CTM solves them
+- **Multi-component Reward System**: Performance, feasibility, novelty, and progression
+- **Cross-domain Transfer**: Knowledge sharing between different types of tasks
+- **Lightweight Quantum Simulation**: VQE, Grover, QFT algorithms optimized for standard GPUs
+- **Phase-based Evolution**: Exploration → Specialization → Transfer → Refinement
 
-## 📂 Structure du projet
+## 📂 Project Structure
 ```
 CTM-AbsoluteZero/
 ├── README.md
 ├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
 ├── src/
 │   ├── __init__.py
-│   ├── ctm_az_agent.py       # Agent principal et boucle d'entraînement
+│   ├── cli.py                # Command-line interface
+│   ├── ctm_az_agent.py       # Main agent and training loop
 │   ├── rewards/
 │   │   ├── __init__.py
-│   │   ├── novelty.py        # Détection de nouveauté sémantique
-│   │   ├── progress.py       # Surveillance des compétences pyramidales
-│   │   └── composite.py      # Système de récompense composite
+│   │   ├── novelty.py        # Semantic novelty detection
+│   │   ├── progress.py       # Pyramid skill monitoring
+│   │   └── composite.py      # Composite reward system
 │   ├── transfer/
 │   │   ├── __init__.py
-│   │   ├── adapter.py        # Transfert de connaissances inter-domaines
-│   │   └── phase.py          # Contrôleur de phase d'entraînement
-│   └── ctm/
+│   │   ├── adapter.py        # Cross-domain knowledge transfer
+│   │   └── phase.py          # Training phase controller
+│   ├── ctm/
+│   │   ├── __init__.py
+│   │   ├── interface.py      # Main CTM interface
+│   │   ├── maze_solver.py    # Maze solver
+│   │   ├── image_classifier.py # Image classifier
+│   │   ├── sorter.py         # Sorting module
+│   │   └── quantum_sim.py    # Lightweight quantum simulator
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   ├── logging.py        # Logging utilities
+│   │   ├── config.py         # Configuration management
+│   │   └── data.py           # Data management
+│   └── integration/
 │       ├── __init__.py
-│       ├── interface.py      # Interface CTM principale
-│       ├── maze_solver.py    # Résolveur de labyrinthe
-│       ├── image_classifier.py # Classificateur d'images
-│       ├── sorter.py         # Module de tri
-│       └── quantum_sim.py    # Simulateur quantique léger
+│       └── dfz.py            # DFZ integration module
 ├── configs/
-│   ├── default.yaml          # Configuration par défaut
-│   └── quantum.yaml          # Configuration spécifique quantique
-└── examples/
-    ├── basic_training.py     # Exemple d'entraînement de base
-    └── quantum_tasks.py      # Exemple de tâches quantiques
+│   ├── default.yaml          # Default configuration
+│   ├── quantum.yaml          # Quantum-specific configuration
+│   └── production.yaml       # Production configuration
+├── examples/
+│   ├── basic_training.py     # Basic training example
+│   └── quantum_tasks.py      # Quantum task example
+├── tests/
+│   ├── __init__.py
+│   ├── test_utils.py         # Utility module tests
+│   └── test_rewards.py       # Reward system tests
+└── docs/
+    ├── api.md                # API reference
+    └── deployment.md         # Deployment guide
 ```
 
 ## 🚀 Installation
+
+### Using pip
 
 ```bash
 git clone https://github.com/your-username/CTM-AbsoluteZero.git
@@ -50,123 +71,189 @@ cd CTM-AbsoluteZero
 pip install -r requirements.txt
 ```
 
-## 🔧 Utilisation
+### Using Docker
 
-### Entraînement de base
-
-```python
-from src.ctm_az_agent import CTM_AbsoluteZero_Agent
-
-# Initialiser l'agent
-agent = CTM_AbsoluteZero_Agent(
-    ctm_solver_config={"model_path": "path/to/ctm/checkpoint"},
-    proposer_llm_name="mistralai/Mistral-7B-Instruct-v0.1"
-)
-
-# Exécuter une étape d'auto-apprentissage
-reward, task = agent.run_self_play_step("maze", "Générer un labyrinthe modérément complexe")
-print(f"Tâche: {task}, Récompense: {reward:.3f}")
-
-# Exécuter la boucle complète d'entraînement
-agent.train(steps=10000, domains=["maze", "sorting", "quantum"])
+```bash
+git clone https://github.com/your-username/CTM-AbsoluteZero.git
+cd CTM-AbsoluteZero
+docker-compose up -d
 ```
 
-### Configuration personnalisée
+## 🔧 Usage
 
-```python
-import yaml
+### Command-line Interface
 
-# Charger une configuration personnalisée
-with open("configs/quantum.yaml", "r") as f:
-    config = yaml.safe_load(f)
+The most straightforward way to use CTM-AbsoluteZero is through the command-line interface:
 
-agent = CTM_AbsoluteZero_Agent(
-    ctm_solver_config=config["ctm"],
-    az_hyperparams=config["absolute_zero"],
-    ppo_config_dict=config["ppo"]
-)
+```bash
+# Generate tasks
+python -m src.cli generate --domain maze --count 3
+
+# Solve a specific task
+python -m src.cli solve --task "Solve a 10x10 maze with multiple paths" --domain maze
+
+# Train the agent
+python -m src.cli train --domain quantum --iterations 1000
+
+# Evaluate the agent
+python -m src.cli evaluate --domain sorting --num-tasks 20
+
+# Run with DFZ integration
+python -m src.cli dfz --interactive
 ```
 
-## 📘 Composants principaux
-
-### CTM_AbsoluteZero_Agent
-Classe principale intégrant le Proposer (LLM) et le Solver (CTM), gérant la boucle d'auto-apprentissage et les mises à jour PPO.
+### Basic Training
 
 ```python
-# Exemple d'utilisation du générateur de tâches
-task = agent.propose_task("quantum", "Privilégier les algorithmes QFT")
-print(task)
-# {'type': 'quantum_task', 'params': {'algorithm': 'qft', 'num_qubits': 6, 'noise_level': 0.01, 'circuit_depth': 5}}
+from src.ctm_az_agent import AbsoluteZeroAgent
+from src.ctm.interface import RealCTMInterface
+from src.rewards.composite import CompositeRewardSystem
+from src.transfer.adapter import NeuralTransferAdapter
+from src.utils.config import ConfigManager
+
+# Load configuration
+config = ConfigManager("configs/default.yaml").to_dict()
+
+# Initialize components (simplified)
+ctm_interface = RealCTMInterface(config["ctm"])
+reward_system = CompositeRewardSystem(...)
+transfer_adapter = NeuralTransferAdapter(config["domains"])
+
+# Initialize the agent
+agent = AbsoluteZeroAgent(
+    proposer_model_path="models/proposer",
+    solver_model_path="models/solver",
+    reward_system=reward_system,
+    transfer_adapter=transfer_adapter,
+    ctm_interface=ctm_interface,
+    config=config["agent"]
+)
+
+# Train the agent
+agent.train(domain="maze", max_iterations=10000, eval_interval=100)
+```
+
+### Custom Configuration
+
+```python
+from src.utils.config import ConfigManager
+from src.ctm_az_agent import AbsoluteZeroAgent
+
+# Load a custom configuration
+config_manager = ConfigManager("configs/quantum.yaml")
+config = config_manager.to_dict()
+
+# Initialize the agent (components setup omitted for brevity)
+agent = AbsoluteZeroAgent(...)
+
+# Generate quantum tasks
+tasks = agent.generate_tasks(domain="quantum", count=3)
+for task in tasks:
+    print(f"Task: {task['description']}")
+    
+    # Solve task
+    result = agent.solve_task(task)
+    print(f"Result: {result}")
+```
+
+## 📘 Core Components
+
+### AbsoluteZeroAgent
+Main class integrating the Proposer (LLM) and Solver (CTM), managing the self-learning loop.
+
+```python
+# Example task generation
+tasks = agent.generate_tasks(domain="quantum", count=1)
+print(tasks[0])
+# {'id': 'task_123', 'domain': 'quantum', 'description': 'Implement a QFT algorithm for 6 qubits', 'parameters': {'algorithm': 'qft', 'num_qubits': 6, 'noise_level': 0.01, 'circuit_depth': 5}}
+
+# Example task solving
+result = agent.solve_task(tasks[0])
+print(result)
+# {'success': True, 'solution': {...}, 'metrics': {'execution_time': 0.34, 'solution_quality': 0.92}}
 ```
 
 ### SemanticNoveltyTracker
-Détecte les tâches véritablement nouvelles en utilisant des empreintes de paramètres et des similarités cosinus.
+Detects truly novel tasks using parameter fingerprints and cosine similarities.
 
 ```python
 from src.rewards.novelty import SemanticNoveltyTracker
 
 tracker = SemanticNoveltyTracker()
-task1 = {"type": "maze", "params": {"size_x": 10, "size_y": 10, "complexity": 0.5}}
-task2 = {"type": "maze", "params": {"size_x": 11, "size_y": 10, "complexity": 0.52}}
-task3 = {"type": "maze", "params": {"size_x": 20, "size_y": 20, "complexity": 0.9}}
+task1 = {"description": "Solve 10x10 maze", "embedding": [...]}
+task2 = {"description": "Solve 11x10 maze", "embedding": [...]}
+task3 = {"description": "Solve 20x20 maze", "embedding": [...]}
 
-print(tracker.calculate_novelty(task1))  # 1.0 (première tâche)
-print(tracker.calculate_novelty(task2))  # 0.0 (similaire à task1)
-print(tracker.calculate_novelty(task3))  # 1.0 (significativement différent)
+print(tracker.compute_novelty(task1))  # 1.0 (first task)
+print(tracker.compute_novelty(task2))  # 0.1 (similar to task1)
+print(tracker.compute_novelty(task3))  # 0.8 (significantly different)
 ```
 
 ### SkillPyramid
-Suit la progression hiérarchique des compétences dans différents domaines et niveaux de difficulté.
+Tracks hierarchical skill progression across different domains and difficulty levels.
 
 ```python
 from src.rewards.progress import SkillPyramid
 
-pyramid = SkillPyramid()
-scores = [0.5, 0.55, 0.6, 0.65, 0.7]
-task = {"type": "quantum", "params": {"num_qubits": 4, "algorithm": "vqe"}}
+pyramid = SkillPyramid(domains=["maze", "quantum", "sorting"])
+task = {"domain": "quantum", "challenge_level": 3, "success": True}
 
-for score in scores:
-    progress = pyramid.record_and_assess(task, score)
-    print(f"Score: {score}, Progrès: {progress:.3f}")
+# Record successful task completion
+pyramid.update_skill(task)
+
+# Get current skill level
+skill_level = pyramid.get_skill_level("quantum")
+print(f"Quantum skill level: {skill_level}")  # 2
+
+# Scale reward based on skill level
+reward = pyramid.scale_reward("quantum", 1.0)
+print(f"Scaled reward: {reward}")  # 0.75 (lower reward as skill improves)
 ```
 
 ### NeuralTransferAdapter
-Permet le transfert de connaissances entre domaines en modifiant les paramètres des tâches.
+Enables knowledge transfer between domains by modifying task parameters.
 
 ```python
 from src.transfer.adapter import NeuralTransferAdapter
 
 adapter = NeuralTransferAdapter(["maze", "quantum", "sorting"])
-domain_perf = {
-    "sorting": {"avg": 0.8, "trend": 0.1, "var": 0.02},
-    "quantum": {"avg": 0.6, "trend": 0.05, "var": 0.04}
+
+# Adapt task from one domain to another
+source_task = {
+    "domain": "sorting",
+    "description": "Implement quicksort",
+    "parameters": {"array_size": 1000, "complexity": "O(n log n)"}
 }
 
-task = {"type": "rl", "params": {"env_id": "CartPole", "max_episode_steps": 200}}
-modified_task = adapter.transfer_parameters("rl", task, domain_perf)
-print(modified_task)
-# {'type': 'rl', 'params': {'env_id': 'CartPole', 'max_episode_steps': 440}}
+adapted_task = adapter.adapt_task(
+    task=source_task,
+    source_domain="sorting",
+    target_domain="maze"
+)
+
+print(f"Adapted task: {adapted_task['description']}")
+# "Create a maze that requires a divide and conquer approach"
 ```
 
 ### PhaseController
-Gère les transitions entre phases d'entraînement et ajuste les poids des récompenses en conséquence.
+Manages transitions between training phases and adjusts reward weights accordingly.
 
 ```python
 from src.transfer.phase import PhaseController
 
 controller = PhaseController()
 print(controller.current_phase)  # 'exploration'
-print(controller.get_weights())  # {'solve': 0.4, 'propose': 0.2, 'novelty': 0.3, 'progress': 0.1}
+print(controller.get_phase_weights())  # {'solve': 0.4, 'discover': 0.6}
 
-# Simuler une transition de phase
-metrics = {'success_rate': [0.7, 0.68, 0.72], 'cross_domain_corr': 0.3}
+# Simulate phase transition
+metrics = {'success_rate': 0.75, 'cross_domain_transfer': 0.45}
 controller.update_phase(metrics)
-print(controller.current_phase)  # 'specialization'
+print(controller.current_phase)  # 'exploitation'
 ```
 
-## 🧪 Simulateur Quantique
+## 🧪 Quantum Simulator
 
-Le module de simulation quantique légère permet de tester des algorithmes quantiques sans matériel spécialisé.
+The lightweight quantum simulation module allows testing quantum algorithms without specialized hardware.
 
 ```python
 from src.ctm.quantum_sim import QuantumSimulator
@@ -179,43 +266,98 @@ result = simulator.run({
     'circuit_depth': 4
 })
 
-print(f"Score: {result['main_score']}, Fidélité: {result['circuit_fidelity']}")
+print(f"Success: {result['success']}")
+print(f"Circuit fidelity: {result['fidelity']}")
+print(f"Solution: {result['solution']}")
 ```
 
-## 📊 Performances
+## 🔌 DFZ Integration
 
-Le framework a été testé sur divers domaines avec les résultats suivants:
+The framework can be integrated with the DFZ conversational intelligence system:
 
-| Phase | Durée (étapes) | Taux de réussite moyen | Corrélation inter-domaines |
-|-------|----------------|------------------------|----------------------------|
+```python
+from src.integration.dfz import DFZAdapter
+import asyncio
+
+async def main():
+    # Initialize DFZ adapter
+    adapter = DFZAdapter(dfz_path="/path/to/dfz")
+    await adapter.initialize()
+    
+    # Generate tasks using conversation context
+    tasks = await adapter.generate_task(
+        domain="maze",
+        context={"difficulty": "medium", "user_skill": "beginner"}
+    )
+    
+    # Execute a task
+    result = await adapter.execute_task(tasks[0])
+    
+    # Send message to DFZ
+    response = await adapter.send_message(
+        "The task was completed successfully with a score of 85%",
+        context={"task_id": tasks[0]["id"]}
+    )
+    
+    print(f"DFZ response: {response}")
+
+# Run the async function
+asyncio.run(main())
+```
+
+## 📊 Performance
+
+The framework has been tested across various domains with the following results:
+
+| Phase | Duration (iterations) | Average Success Rate | Cross-domain Correlation |
+|-------|----------------------|---------------------|--------------------------|
 | Exploration | 0-5000 | 48.2% | 0.31 |
-| Spécialisation | 5000-20000 | 67.5% | 0.58 |
-| Transfert | 20000-35000 | 72.3% | 0.77 |
-| Raffinement | 35000-50000 | 84.1% | 0.85 |
+| Specialization | 5000-20000 | 67.5% | 0.58 |
+| Transfer | 20000-35000 | 72.3% | 0.77 |
+| Refinement | 35000-50000 | 84.1% | 0.85 |
 
-## 📜 Licence
+## 🚢 Deployment
 
-Ce projet est sous licence MIT - voir le fichier LICENSE pour plus de détails.
+For production deployment, we recommend using Docker:
 
-## 🤝 Contribution
+```bash
+# Build and run using docker-compose
+docker-compose -f docker-compose.yml up -d
 
-Les contributions sont les bienvenues! N'hésitez pas à ouvrir une issue ou soumettre une pull request.
+# Scale for higher load
+docker-compose -f docker-compose.yml up -d --scale ctm-az=3
+```
 
-1. Forkez le projet
-2. Créez votre branche de fonctionnalité (`git checkout -b feature/amazing-feature`)
-3. Committez vos changements (`git commit -m 'Add some amazing feature'`)
-4. Poussez vers la branche (`git push origin feature/amazing-feature`)
-5. Ouvrez une Pull Request
+For detailed deployment instructions, see the [Deployment Guide](docs/deployment.md).
+
+## 📚 Documentation
+
+- [API Reference](docs/api.md) - Detailed API documentation
+- [Deployment Guide](docs/deployment.md) - Instructions for production deployment
+
+## 📜 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📞 Contact
 
-Votre Nom - @twitter_handle - email@example.com
+Your Name - @twitter_handle - email@example.com
 
-URL du projet: https://github.com/your-username/CTM-AbsoluteZero
+Project URL: https://github.com/your-username/CTM-AbsoluteZero
 
 <p align="center">
   <img src="https://via.placeholder.com/150?text=CTM-AZ" alt="CTM-AbsoluteZero Logo"/>
 </p>
 <p align="center">
-  <i>Construisez des agents auto-didactiques avec transfert inter-domaines et simulation quantique légère.</i>
+  <i>Build self-learning agents with cross-domain transfer and lightweight quantum simulation.</i>
 </p>
