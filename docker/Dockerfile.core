@@ -1,5 +1,8 @@
 FROM python:3.9-slim
 
+# Create non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser -d /home/appuser -s /sbin/nologin -c "App User" appuser
+
 WORKDIR /app
 
 # Install system dependencies
@@ -16,16 +19,20 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code
-COPY . .
+COPY --chown=appuser:appuser . .
 
-# Create necessary directories
-RUN mkdir -p /app/data /app/logs /app/state /app/models
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/data /app/logs /app/state /app/models && \
+    chown -R appuser:appuser /app
 
 # Expose port
 EXPOSE 8000
 
 # Add health check endpoint
 RUN echo 'from flask import Flask, jsonify; app = Flask(__name__); @app.route("/health") \ndef health(): return jsonify({"status": "healthy"}); \nif __name__ == "__main__": app.run(host="0.0.0.0", port=8000)' > /app/health_check.py
+
+# Switch to non-root user
+USER appuser
 
 # Set default command
 CMD ["python", "-m", "src.cli", "--config", "/app/configs/production.yaml", "dfz", "--interactive"]

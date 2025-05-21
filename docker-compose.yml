@@ -8,7 +8,7 @@ services:
     container_name: ctm-az-core
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       - CLAUDE_API_KEY=${CLAUDE_API_KEY}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
@@ -19,11 +19,18 @@ services:
       - CTM_AZ_LOGGING_LEVEL=${LOG_LEVEL:-info}
       - CTM_AZ_PERFORMANCE_CUDA_ENABLED=${CUDA_ENABLED:-true}
     volumes:
-      - ./configs:/app/configs
-      - ./data:/app/data
-      - ./models:/app/models
-      - ./logs:/app/logs
-      - ./state:/app/state
+      - ./configs:/app/configs:ro
+      - ./data:/app/data:rw
+      - ./models:/app/models:ro
+      - ./logs:/app/logs:rw
+      - ./state:/app/state:rw
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: false
+    tmpfs:
+      - /tmp
     command: python -m src.cli --config /app/configs/production.yaml dfz --interactive
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -47,15 +54,24 @@ services:
     container_name: ctm-az-monitor
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
       - CORE_API_URL=http://ctm-az-core:8000
       - DASH_DEBUG=${DASH_DEBUG:-false}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - PYTHONUNBUFFERED=1
+      - AUTH_USERNAME=${AUTH_USERNAME:-admin}
+      - AUTH_PASSWORD=${AUTH_PASSWORD:-changez_ce_mot_de_passe}
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
+      - ./data:/app/data:ro
+      - ./logs:/app/logs:rw
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: false
+    tmpfs:
+      - /tmp
     depends_on:
       ctm-az-core:
         condition: service_healthy

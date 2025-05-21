@@ -12,6 +12,7 @@ import logging
 import requests
 from datetime import datetime
 from typing import Dict, List, Any, Optional, Tuple
+from flask import request
 
 import dash
 from dash import dcc, html, Input, Output, State, callback
@@ -20,6 +21,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
+from flask_httpauth import HTTPBasicAuth
 
 # Add the parent directory to the path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -27,6 +29,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 # Import utilities
 from src.utils.logging import configure_logging, get_logger
 from src.utils.config import ConfigManager, load_config
+from src.monitor.auth import auth
 
 # Configure logging
 logger = get_logger("ctm-az.monitor")
@@ -56,11 +59,24 @@ app = dash.Dash(
 # For gunicorn
 server = app.server
 
-# Create health check endpoint
+# Create health check endpoint (no auth required)
 @server.route("/health")
 def health_check():
     from flask import jsonify
     return jsonify({"status": "healthy"})
+
+# Protect all Dash routes with authentication
+@server.before_request
+def before_request():
+    if request.path.startswith("/health"):
+        # Skip authentication for health check endpoint
+        return
+    
+    from flask import request
+    if not request.path.startswith("/assets/") and not request.path.startswith("/_favicon"):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth.authenticate(auth_header, None):
+            return auth.auth_error_callback()
 
 # API interaction functions
 def fetch_metrics() -> Dict[str, Any]:

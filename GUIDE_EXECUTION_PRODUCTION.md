@@ -1,6 +1,6 @@
 # Guide d'exécution en production de CTM-AbsoluteZero
 
-Ce guide vous explique étape par étape comment exécuter CTM-AbsoluteZero en production.
+Ce guide vous explique étape par étape comment exécuter CTM-AbsoluteZero en production de manière sécurisée.
 
 ## Prérequis
 
@@ -10,6 +10,7 @@ Ce guide vous explique étape par étape comment exécuter CTM-AbsoluteZero en p
 - Un processeur avec au moins 4 cœurs
 - 20 Go d'espace disque disponible
 - Clés API pour Claude et DeepSeek (si nécessaire)
+- Serveur proxy inverse (Nginx ou Traefik) pour la sécurité en production
 
 ## Étapes d'exécution
 
@@ -30,7 +31,7 @@ Créez un fichier `.env` à partir du fichier d'exemple :
 cp .env.example .env
 ```
 
-Ouvrez le fichier `.env` avec votre éditeur de texte préféré et configurez les variables d'environnement, notamment les clés API :
+Ouvrez le fichier `.env` avec votre éditeur de texte préféré et configurez les variables d'environnement :
 
 ```bash
 nano .env
@@ -39,7 +40,11 @@ nano .env
 Assurez-vous de configurer au minimum :
 - `CLAUDE_API_KEY` - Votre clé API Claude
 - `DEEPSEEK_API_KEY` - Votre clé API DeepSeek
+- `AUTH_USERNAME` - Nom d'utilisateur pour l'interface d'administration (ne pas utiliser la valeur par défaut)
+- `AUTH_PASSWORD` - Mot de passe robuste (min. 12 caractères, complexe)
 - Ajustez les autres paramètres selon vos besoins (optimisation des tokens, nombre de workers, etc.)
+
+**Important pour la sécurité** : Ne stockez JAMAIS les clés API dans des dépôts git ou des emplacements publics. En environnement d'entreprise, utilisez plutôt un gestionnaire de secrets comme HashiCorp Vault ou AWS Secrets Manager.
 
 ### 3. Création des répertoires nécessaires
 
@@ -91,12 +96,57 @@ docker-compose logs -f
 
 ### 7. Accès aux services
 
-Une fois les services démarrés :
+Une fois les services démarrés, ils sont uniquement accessibles localement pour des raisons de sécurité :
 
-- Interface du moniteur : http://localhost:8080
-- API Core : http://localhost:8000
-- Point de santé du Core : http://localhost:8000/health
-- Point de santé du Monitor : http://localhost:8080/health
+- Interface du moniteur : http://127.0.0.1:8080 (authentification requise)
+- API Core : http://127.0.0.1:8000
+- Point de santé du Core : http://127.0.0.1:8000/health
+- Point de santé du Monitor : http://127.0.0.1:8080/health
+
+#### Configuration d'un serveur proxy inverse (Recommandé pour la production)
+
+Pour accéder aux services de manière sécurisée depuis l'extérieur, configurez un proxy inverse avec TLS :
+
+1. Installez Nginx ou un autre serveur proxy
+2. Générez des certificats TLS (Let's Encrypt ou certificat d'entreprise)
+3. Configurez le proxy avec des règles de sécurité renforcées
+
+Exemple de configuration Nginx :
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name monitor.votredomaine.com;
+
+    ssl_certificate     /chemin/vers/certificat.crt;
+    ssl_certificate_key /chemin/vers/cle.key;
+    
+    # Configuration TLS sécurisée
+    ssl_protocols TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_ciphers 'TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256';
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:50m;
+    
+    # En-têtes de sécurité
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-Frame-Options DENY;
+    
+    # Proxy vers l'application Monitor
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        
+        # Limitation de débit (protection contre les attaques)
+        limit_req zone=monitor_limit burst=20 nodelay;
+        
+        # Restriction IP (si nécessaire)
+        # allow 192.168.1.0/24;  # Réseau d'entreprise
+        # deny all;              # Bloquer tout le reste
+    }
+}
 
 ### 8. Arrêt des services
 

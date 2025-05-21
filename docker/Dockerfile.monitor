@@ -1,5 +1,8 @@
 FROM python:3.9-slim
 
+# Create non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser -d /home/appuser -s /sbin/nologin -c "App User" appuser
+
 WORKDIR /app
 
 # Install system dependencies
@@ -14,23 +17,29 @@ RUN pip install --no-cache-dir \
     dash \
     dash-bootstrap-components \
     flask \
+    flask-httpauth \
     plotly \
     pandas \
     requests \
-    gunicorn
+    gunicorn \
+    werkzeug
 
 # Copy monitoring specific code
-COPY ./src/monitor /app/src/monitor
-COPY ./src/utils /app/src/utils
+COPY --chown=appuser:appuser ./src/monitor /app/src/monitor
+COPY --chown=appuser:appuser ./src/utils /app/src/utils
 
-# Create necessary directories
-RUN mkdir -p /app/data /app/logs
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/data /app/logs && \
+    chown -R appuser:appuser /app
 
 # Create health check endpoint
 RUN echo 'from flask import Flask, jsonify; app = Flask(__name__); @app.route("/health") \ndef health(): return jsonify({"status": "healthy"}); \nif __name__ == "__main__": app.run(host="0.0.0.0", port=8080)' > /app/health_check.py
 
 # Expose port
 EXPOSE 8080
+
+# Switch to non-root user
+USER appuser
 
 # Set default command
 CMD ["python", "-m", "src.monitor.app"]
