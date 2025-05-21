@@ -1,0 +1,48 @@
+# DFZ Integration Configuration
+
+# Primary DFZ path for Windows location
+dfz:
+  dfz_path: "/mnt/c/Dev/DFZ-Monorepo/evolution"
+  plugin_enabled: true
+  model_sync_interval: 600  # 10 minutes
+  conversation_history_size: 50
+  task_registry_size: 1000
+  enable_websocket: true
+  websocket_port: 8765
+
+# Agent configuration - unchanged from production
+agent:
+  proposer_model_path: "models/proposer"
+  proposer_tokenizer_path: "models/proposer"
+  solver_model_path: "models/solver"
+  solver_tokenizer_path: "models/solver"
+  max_tokens: 2048
+  temperature: 0.7
+  top_p: 0.95
+  task_history_size: 100
+  max_attempts: 3
+  timeout: 60
+
+# Data sharing configuration
+sync:
+  enabled: true
+  sync_interval: 300  # 5 minutes
+  primary_location: "/home/delicious-linux/CTM-AbsoluteZero"
+  secondary_location: "/mnt/c/Dev/CTM-AbsoluteZero"
+  shared_directories:
+    - "data"
+    - "models"
+    - "state"
+  exclude_patterns:
+    - "*.log"
+    - "*.tmp"
+    - "__pycache__"
+
+# Logging - more verbose for integration debugging
+logging:
+  level: "debug"
+  file: "logs/dfz_integration.log"
+  rotation: true
+  max_size: 10485760  # 10 MB
+  backup_count: 5
+  metrics_interval: 300  # 5 minutes

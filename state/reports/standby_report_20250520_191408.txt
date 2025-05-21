@@ -1,0 +1,18 @@
+=== CTM-AbsoluteZero Standby Report ===
+
+Date: 2025-05-20 19:14:08
+Uptime: 1747761248 seconds
+Status: entering_standby
+
+=== Performance ===
+
+=== System Info ===
+
+python_version: 3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0]
+os: linux
+cpu_count: 20
+disk_total: 1081101176832
+disk_used: 4511326208
+disk_free: 1021597495296
+
+=== End of Report ===

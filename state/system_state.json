@@ -1,0 +1,18 @@
+{
+  "last_wake": 1747823542,
+  "last_standby": 1747761248,
+  "status": "error",
+  "components": {
+    "services": {
+      "wake_triggers": {
+        "status": "running",
+        "pid": 74066,
+        "start_time": 1747761248,
+        "log": "/home/delicious-linux/CTM-AbsoluteZero/logs/wake_triggers.log"
+      }
+    }
+  },
+  "wake_triggers": [
+    "code"
+  ]
+}

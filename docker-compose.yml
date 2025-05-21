@@ -1,28 +1,98 @@
 version: '3.8'
 
 services:
-  ctm-az:
-    build: .
-    container_name: ctm-absolutezero
-    volumes:
-      - ./models:/app/models
-      - ./data:/app/data
-      - ./logs:/app/logs
-      - ./state:/app/state
-      - ./configs:/app/configs
+  ctm-az-core:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+    container_name: ctm-az-core
+    restart: unless-stopped
     ports:
       - "8000:8000"
-    command: python -m src.cli --config /app/configs/production.yaml dfz
     environment:
-      - CTM_AZ_LOGGING_LEVEL=info
-      - CTM_AZ_PERFORMANCE_CUDA_ENABLED=true
-    restart: unless-stopped
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - TOKEN_OPTIMIZATION_MODE=${TOKEN_OPTIMIZATION_MODE:-balanced}
+      - MAX_WORKERS=${MAX_WORKERS:-4}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=1
+      - CTM_AZ_LOGGING_LEVEL=${LOG_LEVEL:-info}
+      - CTM_AZ_PERFORMANCE_CUDA_ENABLED=${CUDA_ENABLED:-true}
+    volumes:
+      - ./configs:/app/configs
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./logs:/app/logs
+      - ./state:/app/state
+    command: python -m src.cli --config /app/configs/production.yaml dfz --interactive
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - ctm-network
     deploy:
       resources:
         limits:
           memory: 8G
         reservations:
           memory: 4G
+
+  ctm-az-monitor:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.monitor
+    container_name: ctm-az-monitor
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - CORE_API_URL=http://ctm-az-core:8000
+      - DASH_DEBUG=${DASH_DEBUG:-false}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      ctm-az-core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - ctm-network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+  ctm-az-test-runner:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.tests
+    container_name: ctm-az-test-runner
+    environment:
+      - CORE_API_URL=http://ctm-az-core:8000
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./tests:/app/tests
+      - ./results:/app/results
+    depends_on:
+      ctm-az-core:
+        condition: service_healthy
+    profiles:
+      - testing
+    networks:
+      - ctm-network
 
   # Optional DFZ integration service (uncomment if needed)
   # dfz:
@@ -37,5 +107,11 @@ services:
   #     - DFZ_PLUGINS_ENABLED=true
   #     - DFZ_PLUGINS_PATH=/app/plugins
   #   depends_on:
-  #     - ctm-az
+  #     - ctm-az-core
   #   restart: unless-stopped
+  #   networks:
+  #     - ctm-network
+
+networks:
+  ctm-network:
+    driver: bridge

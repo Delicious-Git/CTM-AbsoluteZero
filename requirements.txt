@@ -3,6 +3,7 @@ numpy>=1.22.0
 scipy>=1.10.0
 pyyaml>=6.0
 torch>=2.0.0
+einops>=0.6.0  # Added for tensor operations
 
 # LLM and Transformers
 transformers>=4.35.0
